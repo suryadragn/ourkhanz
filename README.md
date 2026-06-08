@@ -63,14 +63,6 @@ DB_PASSWORD=           # Database password
 DB_DSN=mysql:host=127.0.0.1;port=3307;dbname=sik
 ```
 
-**For Remote Database:**
-```env
-DB_HOST=100.104.190.101
-DB_PORT=3306
-DB_USERNAME=your_username
-DB_PASSWORD=your_password
-```
-
 ### Step 4: Configure Web Server
 
 #### Using Laragon (Recommended)
