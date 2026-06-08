@@ -32,6 +32,9 @@ composer.lock
 /sik202606080900.zip
 /sql_chunks/
 
+# environment configuration
+.env
+
 # Mac DS_Store Files
 .DS_Store
 
