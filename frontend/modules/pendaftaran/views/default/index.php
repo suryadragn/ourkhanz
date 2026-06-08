@@ -164,6 +164,21 @@ $this->registerJsFile('https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap
                                     <th>No Antrian</th>
                                     <th>Status Pcare</th>
                                     <th>Status Penanganan</th>
+                                                            <thead class="table-light">
+                                                                <tr>
+                                                                    <th>No Rawat</th>
+                                                                    <th>Tgl Daftar</th>
+                                                                    <th>Jam Registrasi</th>
+                                                                    <th>Jam Booking</th>
+                                                                    <th>Metode Bayar</th>
+                                                                    <th>No RM</th>
+                                                                    <th>Nama Pasien</th>
+                                                                    <th>Dokter</th>
+                                                                    <th>No Antrian</th>
+                                                                    <th>Status Pcare</th>
+                                                                    <th>Status Penanganan</th>
+                                                                </tr>
+                                                            </thead>
                                 </tr>
                             </thead>
                             <tbody id="recentBookingBody">
@@ -174,6 +189,18 @@ $this->registerJsFile('https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap
                                         <td><?= yii\helpers\Html::encode($booking['jam_registrasi'] ?? '-') ?></td>
                                         <td><?= yii\helpers\Html::encode($booking['jam_booking'] ?? '-') ?></td>
                                         <td><?= yii\helpers\Html::encode($booking['no_rkm_medis'] ?? '-') ?></td>
+                                                                        <?php foreach ($recentBookings as $booking): ?>
+                                                                            <tr>
+                                                                                <td><?= yii\helpers\Html::encode($booking['no_rawat'] ?? '-') ?></td>
+                                                                                <td><?= yii\helpers\Html::encode($booking['tglDaftar'] ?? '-') ?></td>
+                                                                                <td><?= yii\helpers\Html::encode($booking['jam_registrasi'] ?? '-') ?></td>
+                                                                                <td><?= yii\helpers\Html::encode($booking['jam_booking'] ?? '-') ?></td>
+                                                                                <td>
+                                                                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle">
+                                                                                        <?= yii\helpers\Html::encode($booking['payment_type'] ?? 'Umum') ?>
+                                                                                    </span>
+                                                                                </td>
+                                                                                <td><?= yii\helpers\Html::encode($booking['no_rkm_medis'] ?? '-') ?></td>
                                         <td><?= yii\helpers\Html::encode($booking['nm_pasien'] ?? '-') ?></td>
                                         <td>
                                             <div class="fw-semibold"><?= yii\helpers\Html::encode($booking['nm_dokter'] ?? '-') ?></div>
@@ -186,7 +213,7 @@ $this->registerJsFile('https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap
                                 <?php endforeach; ?>
                                 <?php if (empty($recentBookings)): ?>
                                     <tr>
-                                        <td colspan="10" class="text-center text-muted py-4">Belum ada pendaftaran terbaru.</td>
+                                        <td colspan="11" class="text-center text-muted py-4">Belum ada pendaftaran terbaru.</td>
                                     </tr>
                                 <?php endif; ?>
                             </tbody>
@@ -198,6 +225,14 @@ $this->registerJsFile('https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap
         </div>
     </div>
 </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="kd_pj">Metode Pembayaran</label>
+                            <select class="form-select" id="kd_pj" name="kd_pj">
+                                <option value="A09">UMUM (Self Pay)</option>
+                                <option value="BPJ">BPJS Kesehatan</option>
+                            </select>
+                            <div class="form-text">Pilih metode pembayaran untuk registrasi pendaftar.</div>
+                        </div>
 
 <div class="modal fade" id="patientModal" tabindex="-1" aria-labelledby="patientModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
@@ -316,6 +351,20 @@ $this->registerJs(<<<JS
                 '<td><span class="badge bg-info-subtle text-info border border-info-subtle">' + escapeHtml(row.noUrut) + '</span></td>' +
                 '<td><span class="badge bg-warning-subtle text-warning border border-warning-subtle">' + escapeHtml(row.status) + '</span></td>' +
                 '<td><span class="badge bg-' + escapeHtml(row.status_penanganan_class || 'warning') + '-subtle text-' + escapeHtml(row.status_penanganan_class || 'warning') + ' border border-' + escapeHtml(row.status_penanganan_class || 'warning') + '-subtle">' + escapeHtml(row.status_penanganan || '-') + '</span></td>';
+                    rows.forEach(function (row) {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML =
+                            '<td>' + escapeHtml(row.no_rawat) + '</td>' +
+                            '<td>' + escapeHtml(row.tglDaftar) + '</td>' +
+                            '<td>' + escapeHtml(row.jam_registrasi || '-') + '</td>' +
+                            '<td>' + escapeHtml(row.jam_booking || '-') + '</td>' +
+                            '<td><span class="badge bg-primary-subtle text-primary border border-primary-subtle">' + escapeHtml(row.payment_type || 'Umum') + '</span></td>' +
+                            '<td>' + escapeHtml(row.no_rkm_medis) + '</td>' +
+                            '<td>' + escapeHtml(row.nm_pasien) + '</td>' +
+                            '<td><div class="fw-semibold">' + escapeHtml(row.nm_dokter) + '</div><small class="text-muted">' + escapeHtml(row.kd_dokter || '-') + '</small></td>' +
+                            '<td><span class="badge bg-info-subtle text-info border border-info-subtle">' + escapeHtml(row.noUrut) + '</span></td>' +
+                            '<td><span class="badge bg-warning-subtle text-warning border border-warning-subtle">' + escapeHtml(row.status) + '</span></td>' +
+                            '<td><span class="badge bg-' + escapeHtml(row.status_penanganan_class || 'warning') + '-subtle text-' + escapeHtml(row.status_penanganan_class || 'warning') + ' border border-' + escapeHtml(row.status_penanganan_class || 'warning') + '-subtle">' + escapeHtml(row.status_penanganan || '-') + '</span></td>';
             recentBookingBody.appendChild(tr);
         });
     }

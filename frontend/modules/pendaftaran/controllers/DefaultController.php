@@ -31,6 +31,11 @@ class DefaultController extends Controller
             $noRkmMedis = trim((string) Yii::$app->request->post('no_rkm_medis', ''));
             $tanggalInput = trim((string) Yii::$app->request->post('tanggal_periksa', $tanggalPeriksa));
             $scheduleKey = trim((string) Yii::$app->request->post('schedule_key', ''));
+        if (Yii::$app->request->isPost) {
+            $noRkmMedis = trim((string) Yii::$app->request->post('no_rkm_medis', ''));
+            $tanggalInput = trim((string) Yii::$app->request->post('tanggal_periksa', $tanggalPeriksa));
+            $scheduleKey = trim((string) Yii::$app->request->post('schedule_key', ''));
+            $kdPj = trim((string) Yii::$app->request->post('kd_pj', 'A09'));
 
             $postDate = DateTimeImmutable::createFromFormat('Y-m-d', $tanggalInput);
             if ($noRkmMedis === '' || $scheduleKey === '' || $postDate === false) {
@@ -97,6 +102,19 @@ class DefaultController extends Controller
                             'kd_poli' => $schedule['kd_poli'],
                             'no_reg' => null,
                             'kd_pj' => 'A09',
+                            'limit_reg' => 0,
+                            'waktu_kunjungan' => date('Y-m-d H:i:s'),
+                            'status' => 'Belum',
+                        ])->execute();
+                        $db->createCommand()->insert('booking_registrasi', [
+                            'tanggal_booking' => date('Y-m-d'),
+                            'jam_booking' => date('H:i:s'),
+                            'no_rkm_medis' => $noRkmMedis,
+                            'tanggal_periksa' => $tanggalInput,
+                            'kd_dokter' => $kdDokter,
+                            'kd_poli' => $schedule['kd_poli'],
+                            'no_reg' => null,
+                            'kd_pj' => in_array($kdPj, ['A09', 'BPJ'], true) ? $kdPj : 'A09',
                             'limit_reg' => 0,
                             'waktu_kunjungan' => date('Y-m-d H:i:s'),
                             'status' => 'Belum',
@@ -386,6 +404,29 @@ class DefaultController extends Controller
             ->leftJoin(['r' => 'reg_periksa'], 'r.no_rawat = b.no_rawat')
             ->leftJoin(['d' => 'dokter'], 'd.kd_dokter = r.kd_dokter')
             ->leftJoin(['bk' => 'booking_registrasi'], 'bk.no_rkm_medis = b.no_rkm_medis AND bk.tanggal_periksa = b.tglDaftar')
+                    $query = (new Query())
+                        ->from(['b' => 'pcare_pendaftaran'])
+                        ->select([
+                            'b.no_rawat',
+                            'b.tglDaftar',
+                            'b.no_rkm_medis',
+                            'b.nm_pasien',
+                            'r.kd_dokter',
+                            'd.nm_dokter',
+                            'r.jam_reg AS jam_registrasi',
+                            'bk.jam_booking',
+                            'bk.kd_pj',
+                            'pj.png_jawab',
+                            'b.kdPoli',
+                            'b.nmPoli',
+                            'b.noUrut',
+                            'b.status',
+                            'r.stts AS stts_periksa',
+                        ])
+                        ->leftJoin(['r' => 'reg_periksa'], 'r.no_rawat = b.no_rawat')
+                        ->leftJoin(['d' => 'dokter'], 'd.kd_dokter = r.kd_dokter')
+                        ->leftJoin(['bk' => 'booking_registrasi'], 'bk.no_rkm_medis = b.no_rkm_medis AND bk.tanggal_periksa = b.tglDaftar')
+                        ->leftJoin(['pj' => 'penjab'], 'pj.kd_pj = bk.kd_pj')
             ->where(['b.tglDaftar' => $tanggalPeriksa])
             ->orderBy(new Expression('b.no_rawat DESC'));
 
@@ -419,3 +460,32 @@ class DefaultController extends Controller
         return [$rows, $pagination];
     }
 }
+                // Determine payment method type label
+                $kd_pj = $row['kd_pj'] ?? '-';
+                $payment_label = 'Umum';
+                if ($kd_pj === 'BPJ') {
+                    $payment_label = 'BPJS Kesehatan';
+                } elseif ($kd_pj === 'A09') {
+                    $payment_label = 'Umum (Self Pay)';
+                }
+
+                return [
+                    'no_rawat' => $row['no_rawat'],
+                    'tglDaftar' => $row['tglDaftar'],
+                    'no_rkm_medis' => $row['no_rkm_medis'],
+                    'nm_pasien' => $row['nm_pasien'],
+                    'kd_dokter' => $row['kd_dokter'] ?? null,
+                    'nm_dokter' => $row['nm_dokter'] ?? '-',
+                    'jam_registrasi' => $row['jam_registrasi'] ?? '-',
+                    'jam_booking' => $row['jam_booking'] ?? '-',
+                    'kd_pj' => $kd_pj,
+                    'nm_pj' => $row['png_jawab'] ?? $payment_label,
+                    'payment_type' => $payment_label,
+                    'kdPoli' => $row['kdPoli'],
+                    'nmPoli' => $row['nmPoli'],
+                    'noUrut' => $row['noUrut'],
+                    'status' => $row['status'],
+                    'stts_periksa' => $row['stts_periksa'] ?? null,
+                    'status_penanganan' => $penangananStatus,
+                    'status_penanganan_class' => $penangananClass,
+                ];
