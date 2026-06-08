@@ -14,7 +14,7 @@ use yii\web\Response;
 
 class DefaultController extends Controller
 {
-    public function actionIndex(): string
+    public function actionIndex(): string|Response
     {
         $db = Yii::$app->db;
 
